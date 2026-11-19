@@ -1,0 +1,461 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style></head><body><title>獨自修仙</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;900&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+/* Layout: one narrow scroll column, a realm gauge as the spine of every screen. Palette: celadon paper, ink, cinnabar seal, jade. */
+:root{
+  --paper:#eaf0ec; --sheet:#f7faf8; --ink:#17221f; --muted:#5b6b66; --line:#c9d6d0;
+  --jade:#25705f; --jade-soft:#d5e8e1; --seal:#b3322a; --seal-soft:#f3dcd8; --gold:#9a6b14;
+  --display:"Noto Serif TC","Songti TC","PMingLiU",serif;
+  --body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0f1719; --sheet:#172124; --ink:#e2ebe7; --muted:#93a59f; --line:#2b3a3c;
+  --jade:#5fc2a6; --jade-soft:#1d3a33; --seal:#e0685e; --seal-soft:#3d2120; --gold:#d9a94a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0f1719; --sheet:#172124; --ink:#e2ebe7; --muted:#93a59f; --line:#2b3a3c;
+  --jade:#5fc2a6; --jade-soft:#1d3a33; --seal:#e0685e; --seal-soft:#3d2120; --gold:#d9a94a; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--paper);color:var(--ink)}
+body{font-family:var(--body);font-size:16px;line-height:1.65;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1,h2{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:.04em}
+h1{font-size:2.4rem;font-weight:900;line-height:1.2}
+h2{font-size:1.35rem;font-weight:600}
+p{margin:0}
+.muted{color:var(--muted)}
+.small{font-size:.85rem}
+.sheet{background:var(--sheet);border:1px solid var(--line);border-radius:6px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.seal{display:inline-grid;place-items:center;width:46px;height:46px;border:2px solid var(--seal);color:var(--seal);font-family:var(--display);font-weight:900;font-size:1.05rem;line-height:1;border-radius:4px;transform:rotate(-4deg);flex:none}
+.head{display:flex;align-items:center;gap:14px}
+button{font:inherit;cursor:pointer;border-radius:5px;border:1px solid var(--line);background:var(--sheet);color:var(--ink);padding:12px 14px;min-height:48px}
+button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+button:disabled{opacity:.45;cursor:default}
+.primary{background:var(--ink);color:var(--paper);border-color:var(--ink);font-weight:700}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.choice{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left}
+.choice b{font-family:var(--display);font-size:1.15rem}
+.choice span{font-size:.82rem;color:var(--muted);line-height:1.4}
+.choice.safe{border-color:var(--jade);background:var(--jade-soft)}
+.choice.risk{border-color:var(--seal);background:var(--seal-soft)}
+input[type=text]{font:inherit;width:100%;padding:12px;border-radius:5px;border:1px solid var(--line);background:var(--paper);color:var(--ink)}
+label{font-weight:500}
+.stats{display:grid;grid-template-columns:1.35fr 1fr 1fr 1fr;gap:8px;font-variant-numeric:tabular-nums}
+.stat b{white-space:nowrap}
+.stat{display:flex;flex-direction:column;min-width:0}
+.stat small{font-size:.72rem;color:var(--muted);letter-spacing:.08em}
+.stat b{font-size:1.15rem}
+/* realm gauge */
+.gauge{position:relative;height:12px;background:var(--paper);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.gauge i{position:absolute;inset:0 auto 0 0;background:var(--jade);transition:width .5s}
+.gauge .tick{position:absolute;top:0;bottom:0;width:1px;background:var(--line)}
+.realms{display:grid;grid-template-columns:30fr 30fr 40fr;font-size:.72rem;color:var(--muted);letter-spacing:.06em}
+.realms span:last-child{display:flex;justify-content:space-between}
+.log{display:flex;flex-direction:column;gap:6px;font-size:.92rem}
+.log p{padding-left:10px;border-left:3px solid var(--line)}
+.log p.good{border-color:var(--jade)}
+.log p.bad{border-color:var(--seal)}
+.log p.gold{border-color:var(--gold)}
+.timer{font-variant-numeric:tabular-nums}
+.pillrow{display:flex;flex-wrap:wrap;gap:8px}
+.pill{border-radius:999px;padding:8px 14px;min-height:40px}
+.pill[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.big{font-family:var(--display);font-size:3rem;font-weight:900;line-height:1}
+table{border-collapse:collapse;width:100%;font-size:.82rem;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:5px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+.scroll{overflow-x:auto}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+textarea{width:100%;height:120px;font:12px ui-monospace,monospace;background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:5px}
+details summary{cursor:pointer;color:var(--muted)}
+.xwrap{position:relative;display:inline-block}
+.delta{position:absolute;left:100%;top:-2px;margin-left:4px;font-weight:700;font-size:.95rem;white-space:nowrap;animation:floatup 1.4s ease-out forwards;pointer-events:none}
+.delta.up{color:var(--jade)}.delta.down{color:var(--seal)}
+@keyframes floatup{0%{opacity:0;transform:translateY(6px)}15%{opacity:1}100%{opacity:0;transform:translateY(-22px)}}
+.banner{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 22%);transform:translateX(-50%);z-index:20;pointer-events:none;
+  background:var(--sheet);border:2px solid var(--gold);border-radius:6px;padding:16px 26px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.18);
+  animation:bannerin 2.2s ease forwards;min-width:220px;max-width:calc(100vw - 32px)}
+.banner small{display:block;color:var(--gold);letter-spacing:.3em;font-size:.8rem}
+.banner b{display:block;font-family:var(--display);font-weight:900;font-size:2.2rem;line-height:1.2;color:var(--ink)}
+.banner span{color:var(--muted);font-size:.9rem}
+@keyframes bannerin{0%{opacity:0;transform:translate(-50%,10px) scale(.92)}12%{opacity:1;transform:translate(-50%,0) scale(1)}80%{opacity:1}100%{opacity:0}}
+.titlecard{border-left:4px solid var(--gold);padding:4px 0 4px 12px}
+.titlecard b{font-family:var(--display);font-size:1.5rem;font-weight:900;color:var(--gold);display:block;line-height:1.3}
+@media (prefers-reduced-motion:reduce){.gauge i{transition:none}.delta,.banner{animation-duration:.01s}.banner{animation:none;opacity:1}}
+@media (max-width:380px){.choices{grid-template-columns:1fr}}
+</style>
+
+<div class="wrap" id="app"></div>
+
+<script>
+// ===== 規則參數（Stage1 v1） =====
+const CFG = {
+  version: "v1.0-世家2%",
+  N: 8, LIMIT_S: 300,
+  origin: [["乞丐",0.60],["身負血仇",0.38],["世家",0.02]],
+  init: {"乞丐":{x:0,s:0},"身負血仇":{x:10,s:0},"世家":{x:20,s:2}},
+  risk: {"乞丐":[0.55,0.40,0.05],"身負血仇":[0.60,0.32,0.08],"世家":[0.50,0.45,0.05]},
+  safe: {p:0.2, hi:8, lo:4}, riskGain:15, hurtLoss:5,
+  luck: {p:0.2, gain:8},
+  feud: {round:4, win:0.5, hurt:0.4, gain:15, flee:5}
+};
+const realm = x => x>=100?"元嬰":x>=60?"金丹":x>=30?"築基":"練氣";
+const LS_GAMES="dzxx_games_v1", LS_LIVE="dzxx_live_v1", LS_PID="dzxx_pid", LS_TEST="dzxx_test";
+const lsGet=(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const r3=n=>Math.round(n*1000)/1000;
+const now=()=>Date.now();
+const $=s=>document.querySelector(s);
+const app=$("#app");
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+
+// ===== 雲端（artifact db，可有可無） =====
+let DB=null, remote={};
+(async()=>{
+  try{
+    if(!window.claude||!window.claude.use) return;
+    DB=await window.claude.use("db");
+    if(!DB) return;
+    DB.collection("games").onSnapshot(s=>{remote={};s.docs.forEach(d=>{if(d.exists)remote[d.id]=d.data()});if(view==="data")renderData()},()=>{});
+    for(const g of lsGet(LS_GAMES,[])) if(!g.synced) pushRemote(g);
+  }catch(e){DB=null}
+})();
+async function pushRemote(g){
+  if(!DB) return;
+  try{await DB.collection("games").doc(g.game_id).set(JSON.parse(JSON.stringify(g)));
+    const all=lsGet(LS_GAMES,[]);const i=all.findIndex(x=>x.game_id===g.game_id);if(i>=0){all[i].synced=true;lsSet(LS_GAMES,all)}
+  }catch(e){}
+}
+function saveGame(g){
+  const all=lsGet(LS_GAMES,[]);const i=all.findIndex(x=>x.game_id===g.game_id);
+  if(i>=0)all[i]=g;else all.push(g);lsSet(LS_GAMES,all);pushRemote(g);
+}
+function allGames(){
+  const m={};for(const g of Object.values(remote))m[g.game_id]=g;
+  for(const g of lsGet(LS_GAMES,[]))m[g.game_id]=Object.assign({},m[g.game_id]||{},g);
+  return Object.values(m).sort((a,b)=>(a.start_ms||0)-(b.start_ms||0));
+}
+
+// ===== 若上次中斷，補記一筆 =====
+(function recoverLive(){
+  const live=lsGet(LS_LIVE,null);
+  if(live&&!live.ended){live.ended=true;live.end_reason="中斷";live.interrupted=1;finalizeStats(live);saveGame(live)}
+  try{localStorage.removeItem(LS_LIVE)}catch(e){}
+})();
+
+// ===== 劇情文字（只影響敘述，不影響機率） =====
+const TXT={
+ luck:["你在破廟拾得一卷殘缺功法","一位醉道人隨手指點你一招","你撿到半顆被人丟棄的丹藥","夜裡夢見古仙傳道，醒來若有所悟","你幫老婆婆挑水，她竟是隱世高人"],
+ beg:["今日沿街乞討，無事發生。","在橋下避雨，一夜無事。","搶到半個饅頭，聊以果腹。","被野狗追了三條街，好在毫髮無傷。"],
+ stone:["服下一顆靈石，傷勢瞬間痊癒，照常修煉。","家族靈石化開藥力，你已無大礙。","族中長老送來靈石，傷勢盡復。"],
+ heal:["重傷未癒，本回合只能閉門療傷。","傷口隱隱作痛，你只得臥床調息。","經脈受損，這回合什麼也做不了。"],
+ safeHi:["閉關之中忽有頓悟，靈台一片清明","觀雲聽雨三日，忽然想通一處關竅","打坐時氣息自轉一周天，境界大進"],
+ safeLo:["閉關苦修，穩紮穩打","吐納練氣一整天，略有寸進","抄讀經卷，根基更穩","對著瀑布練劍，汗流浹背"],
+ riskOk:["救下一位落難散修，獲贈丹藥","在秘境深處找到一株百年靈草","與人論道三日不分勝負，彼此印證","擊退劫道山匪，奪得一枚儲物戒","誤入上古洞府，得前輩遺澤"],
+ riskHurt:["誤闖妖獸巢穴，九死一生逃出","遭散修暗算，身中奇毒","秘境禁制反噬，經脈受創","與人搶奪靈草大打出手，兩敗俱傷"],
+ riskDie:["渡劫失敗，身死道消。","遭遇元嬰老怪，連逃跑的機會都沒有。","踏入上古殺陣，從此世間再無此人。"],
+ feudWin:["你手刃仇敵，心中鬱結一掃而空","一劍斬落仇人首級，大仇得報","苦戰三百回合，終於擊敗仇敵"],
+ feudHurt:["仇敵太強，你拼死逃脫但身受重傷","仇人早有埋伏，你負傷而退"],
+ feudDie:["你戰死於仇敵劍下，大仇未報。","仇人冷笑著收劍，你的修仙路到此為止。"],
+ feudFlee:["你隱姓埋名，避開仇敵","連夜遁走千里，仇人撲了個空"]
+};
+const pick=k=>{const a=TXT[k];return a[Math.floor(Math.random()*a.length)]};
+const say=(k,cls,tail)=>G.log.push([cls,pick(k)+(tail||"")]);
+
+// ===== 遊戲狀態 =====
+let G=null, view="start", tick=null, shownAt=0, shownX=0;
+function drawOrigin(){const u=Math.random();let c=0;for(const [o,p] of CFG.origin){c+=p;if(u<c)return o}return CFG.origin[0][0]}
+function newGame(pid){
+  const origin=drawOrigin();const I=CFG.init[origin];
+  const prev=allGames().filter(g=>g.player_id===pid).length;
+  return {game_id:"g"+now().toString(36)+Math.random().toString(36).slice(2,6),
+    player_id:pid, game_no:prev+1, version:CFG.version, source:lsGet(LS_TEST,false)?"測試":"真人",
+    start_ms:now(), start_time:new Date().toISOString(), origin, x0:I.x, s0:I.s,
+    x:I.x, s:I.s, h:0, alive:1, t:0, ended:false, end_reason:"", rounds:[], log:[],
+    luck_count:0, hurt_count:0, stone_used:0, feud_choice:"", survey:null};
+}
+function persistLive(){lsSet(LS_LIVE,G)}
+function elapsed(){return (now()-G.start_ms)/1000}
+
+function startRound(){
+  G.t++;
+  const R={round:G.t,x_before:G.x,realm_before:realm(G.x),hurt_before:G.h,stones_before:G.s,luck:0,feud:"",feud_result:"",action:"",result:"",decision_s:null,x_after:null};
+  G.cur=R; G.log=[];
+  if(G.origin==="乞丐"){
+    if(Math.random()<CFG.luck.p){G.x+=CFG.luck.gain;R.luck=1;G.luck_count++;say("luck","gold",`。奇遇！修為 +${CFG.luck.gain}。`)}
+    else say("beg","");
+  }
+  if(G.origin==="身負血仇"&&G.t===CFG.feud.round){view="feud";shownAt=now();render();return}
+  afterEvents();
+}
+function afterEvents(){
+  const R=G.cur;
+  if(!G.alive) return finishRound();
+  if(G.x>=100) return finishRound();
+  if(G.h){
+    if(G.s>0){G.s--;G.h=0;G.stone_used++;R.stone=1;say("stone","good")}
+    else{G.h=0;R.action="療傷";R.result="療傷";say("heal","bad");return finishRound()}
+  }
+  view="choose";shownAt=now();persistLive();render();
+}
+function chooseFeud(fight){
+  const R=G.cur;R.feud=fight?"迎戰":"躲避";R.feud_decision_s=r3((now()-shownAt)/1000);G.feud_choice=R.feud;
+  if(fight){const u=Math.random();
+    if(u<CFG.feud.win){G.x+=CFG.feud.gain;R.feud_result="勝";say("feudWin","good",`，修為 +${CFG.feud.gain}。`)}
+    else if(u<CFG.feud.win+CFG.feud.hurt){G.x=Math.max(0,G.x-CFG.hurtLoss);G.h=1;G.hurt_count++;R.feud_result="重傷";say("feudHurt","bad",`，修為 −${CFG.hurtLoss}。`)}
+    else{G.alive=0;R.feud_result="隕落";say("feudDie","bad")}
+  }else{G.x=Math.max(0,G.x-CFG.feud.flee);R.feud_result="躲避";say("feudFlee","",`，修為 −${CFG.feud.flee}。`)}
+  afterEvents();
+}
+function choose(risk){
+  const R=G.cur;R.action=risk?"歷練":"悟道";R.decision_s=r3((now()-shownAt)/1000);
+  if(!risk){if(Math.random()<CFG.safe.p){G.x+=CFG.safe.hi;R.result="頓悟";say("safeHi","good",`。頓悟！修為 +${CFG.safe.hi}。`)}
+    else{G.x+=CFG.safe.lo;R.result="平常";say("safeLo","",`，修為 +${CFG.safe.lo}。`)}}
+  else{const [ps,ph]=CFG.risk[G.origin];const u=Math.random();
+    if(u<ps){G.x+=CFG.riskGain;R.result="結緣";say("riskOk","good",`。機緣！修為 +${CFG.riskGain}。`)}
+    else if(u<ps+ph){G.x=Math.max(0,G.x-CFG.hurtLoss);G.h=1;G.hurt_count++;R.result="重傷";say("riskHurt","bad",`，修為 −${CFG.hurtLoss}，下回合需療傷。`)}
+    else{G.alive=0;R.result="隕落";say("riskDie","bad")}}
+  finishRound();
+}
+function finishRound(){
+  const R=G.cur;R.x_after=G.x;R.realm_after=realm(G.x);R.t_elapsed_s=r3(elapsed());
+  G.rounds.push(R);G.cur=null;
+  if(!G.alive) return endGame("隕落");
+  if(G.x>=100) return endGame("元嬰");
+  if(G.t>=CFG.N) return endGame("回合用完");
+  view="result";persistLive();render();
+}
+function endGame(reason){
+  if(G.ended) return;
+  G.ended=true;G.end_reason=reason;finalizeStats(G);
+  clearInterval(tick);tick=null;
+  try{localStorage.removeItem(LS_LIVE)}catch(e){}
+  saveGame(G);view="end";render();
+}
+function finalizeStats(g){
+  g.end_ms=now();g.total_s=r3((g.end_ms-g.start_ms)/1000);
+  g.final_x=g.x;g.final_realm=realm(g.x);g.died=g.alive?0:1;g.rounds_played=g.rounds.length;
+  g.n_risk=g.rounds.filter(r=>r.action==="歷練").length;g.n_safe=g.rounds.filter(r=>r.action==="悟道").length;
+  g.n_heal=g.rounds.filter(r=>r.action==="療傷").length;
+  g.cleared=(g.alive&&g.x>=60)?1:0;
+  g.choices=g.rounds.map(r=>r.action==="歷練"?"R":r.action==="悟道"?"S":"H").join("");
+  const ds=g.rounds.map(r=>r.decision_s).filter(v=>v!=null);
+  g.mean_decision_s=ds.length?r3(ds.reduce((a,b)=>a+b,0)/ds.length):"";
+  delete g.log;
+}
+function startTimer(){
+  clearInterval(tick);
+  tick=setInterval(()=>{if(!G||G.ended)return;const left=Math.max(0,CFG.LIMIT_S-elapsed());const el=$("#timer");if(el)el.textContent=fmt(left);
+    if(left<=0){if(G.cur){G.cur.action=G.cur.action||"超時";G.cur.x_after=G.x;G.rounds.push(G.cur);G.cur=null}endGame("超時")}},250);
+}
+const fmt=s=>{s=Math.ceil(s);return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")};
+
+// ===== 畫面 =====
+function gauge(x){
+  const w=Math.min(100,x);
+  return `<div style="width:100%"><div class="gauge" role="img" aria-label="修為 ${x}，${realm(x)}"><i id="gbar" style="width:${w}%"></i><span class="tick" style="left:30%"></span><span class="tick" style="left:60%"></span></div>
+  <div class="realms"><span>練氣 0</span><span>築基 30</span><span><span>金丹 60</span><span>元嬰 100</span></span></div></div>`;
+}
+function statusSheet(){
+  return `<div class="sheet">
+    <div class="stats">
+      <div class="stat"><small>出身</small><b>${G.origin}</b></div>
+      <div class="stat"><small>回合</small><b>${Math.min(G.t,CFG.N)} / ${CFG.N}</b></div>
+      <div class="stat"><small>修為</small><b><span class="xwrap"><span id="xnum">${shownX}</span></span></b></div>
+      <div class="stat"><small>境界</small><b id="xrealm">${realm(shownX)}</b></div>
+    </div>
+    ${gauge(shownX)}
+    <div class="row small muted"><span>靈石 ${G.s}</span><span>·</span><span>${G.h?"重傷中":"狀態良好"}</span></div>
+  </div>`;
+}
+function logSheet(){
+  if(!G.log||!G.log.length) return "";
+  return `<div class="log">${G.log.map(([c,t])=>`<p class="${c}">${esc(t)}</p>`).join("")}</div>`;
+}
+const ORIGIN_NOTE={
+  "乞丐":"起點最低（修為 0）。每回合開始有 20% 機率遇到奇遇，修為 +8。想上金丹，就得敢冒險。",
+  "身負血仇":"修為 10。出山歷練成功率最高，也最容易隕落。第 4 回合仇敵必定來襲。",
+  "世家":"修為 20，另有 2 顆靈石，重傷時自動服用，不必停下療傷。"
+};
+const REALMS=["練氣","築基","金丹","元嬰"];
+const BREAK={"築基":"道基已成，正式踏上仙途","金丹":"金丹大成，壽元五百載","元嬰":"元嬰出竅，登頂修仙界"};
+const reduceMotion=()=>{try{return matchMedia("(prefers-reduced-motion: reduce)").matches}catch(e){return false}};
+function paintX(){
+  const el=$("#xnum");if(!el||!G)return;
+  const from=shownX,to=G.x;shownX=to;
+  const bar=$("#gbar"),rl=$("#xrealm");
+  if(from===to)return;
+  const d=to-from;const f=document.createElement("span");f.className="delta "+(d>0?"up":"down");f.textContent=(d>0?"+":"−")+Math.abs(d);
+  el.parentNode.appendChild(f);setTimeout(()=>f.remove(),1500);
+  const done=()=>{el.textContent=to;if(rl)rl.textContent=realm(to)};
+  if(bar)requestAnimationFrame(()=>requestAnimationFrame(()=>{bar.style.width=Math.min(100,to)+"%"}));
+  if(reduceMotion())done();
+  else{const t0=performance.now();const step=t=>{const k=Math.min(1,(t-t0)/650);el.textContent=Math.round(from+d*(1-Math.pow(1-k,3)));if(k<1)requestAnimationFrame(step);else done()};requestAnimationFrame(step)}
+  const a=REALMS.indexOf(realm(from)),b=REALMS.indexOf(realm(to));
+  if(b>a){const n=REALMS[b];const bn=document.createElement("div");bn.className="banner";bn.setAttribute("role","status");
+    bn.innerHTML=`<small>突　破</small><b>${n}</b><span>${BREAK[n]}</span>`;document.body.appendChild(bn);setTimeout(()=>bn.remove(),2300)}
+}
+function titleOf(g){
+  if(g.died){
+    if(g.feud_choice==="迎戰"&&g.rounds.some(r=>r.feud_result==="隕落"))return ["血債未償","為報家仇捨身一戰，可惜天不從人願。"];
+    if(g.n_risk>=4)return ["亡命狂徒","一路刀口舔血，終究走到了盡頭。"];
+    return ["天妒英才","仙路漫漫，你倒在了半途。"];
+  }
+  if(g.final_x>=100)return ["一代宗師","八回合內飛升元嬰，此等天驕百年難遇。"];
+  if(g.origin==="乞丐"&&g.cleared)return ["草莽飛龍","出身最低，卻硬是闖出了一條金丹大道。"];
+  if(g.origin==="身負血仇"&&g.cleared&&g.feud_choice==="迎戰")return ["快意恩仇","大仇得報，道心通明，金丹自成。"];
+  if(g.cleared&&g.n_risk===0)return ["苟道真人","一次都不冒險，照樣結成金丹。穩，才是硬道理。"];
+  if(g.cleared&&g.hurt_count>=2)return ["百折不撓","重傷再多次也打不倒你。"];
+  if(g.cleared)return ["金丹真人","踏入金丹，已是一方強者。"];
+  if(g.n_risk===0)return ["閉關老怪","穩是穩了，只是離金丹還差一口氣。"];
+  if(g.feud_choice==="躲避")return ["隱世散人","仇也躲了，路也慢了，倒也活得自在。"];
+  return ["道阻且長","這一世未成金丹，下一世再來。"];
+}
+function render(){
+  renderView();
+  if(G&&["choose","result","feud","end"].includes(view))paintX();
+}
+function renderView(){
+  if(view==="start"){
+    const pid=lsGet(LS_PID,"");
+    app.innerHTML=`
+    <div class="head"><span class="seal">修<br>仙</span><div><h1>獨自修仙</h1><p class="muted">天道抽出身，八回合定境界</p></div></div>
+    <div class="sheet">
+      <p>開局由天道隨機決定你的出身：<b>乞丐 60%</b>、<b>身負血仇 38%</b>、<b>世家 2%</b>。</p>
+      <p>每回合二選一：<b style="color:var(--jade)">閉關悟道</b>穩定成長，<b style="color:var(--seal)">出山歷練</b>成長快，但可能重傷或隕落。</p>
+      <p>存活並讓修為達到 <b>60（金丹）</b>即為通關，達到 <b>100（元嬰）</b>即登頂。</p>
+      ${gauge(0)}
+    </div>
+    <div class="sheet">
+      <label for="pid">玩家代號</label>
+      <input id="pid" type="text" maxlength="20" placeholder="例如：A07 或暱稱" value="${esc(pid)}" autocomplete="off">
+      <p class="small muted">同一人每局請用同一個代號，資料會依代號記錄第幾局。</p>
+      <button class="primary" id="go">抽出身，開始修仙</button>
+    </div>
+    <button id="toData" class="small">資料與匯出</button>`;
+    const go=()=>{const v=$("#pid").value.trim();if(!v){$("#pid").focus();$("#pid").placeholder="請先輸入代號";return}
+      lsSet(LS_PID,v);G=newGame(v);shownX=G.x;view="origin";persistLive();render()};
+    $("#go").onclick=go;$("#pid").onkeydown=e=>{if(e.key==="Enter")go()};
+    $("#toData").onclick=()=>{view="data";render()};
+    return;
+  }
+  if(view==="origin"){
+    app.innerHTML=`
+    <div class="sheet" style="align-items:flex-start">
+      <p class="muted small">天道已定</p>
+      <h2>你出身<span style="color:var(--seal)">「${G.origin}」</span></h2>
+      <p>${ORIGIN_NOTE[G.origin]}</p>
+      <p class="small muted">初始修為 ${G.x}，靈石 ${G.s}。</p>
+      <button class="primary" id="go">踏入第 1 回合</button>
+    </div>`;
+    $("#go").onclick=()=>{G.start_ms=now();G.start_time=new Date().toISOString();startTimer();startRound()};
+    return;
+  }
+  if(view==="feud"){
+    app.innerHTML=`${statusSheet()}${logSheet()}
+    <div class="sheet"><h2>第 ${G.t} 回合：仇敵來襲</h2>
+      <p>滅門仇人找上門來。迎戰：50% 得勝 +15、40% 重傷、10% 戰死。躲避：修為 −5，但安全。</p>
+      <div class="choices">
+        <button class="choice risk" id="fight"><b>迎戰</b><span>報仇雪恨，生死一線</span></button>
+        <button class="choice safe" id="flee"><b>躲避</b><span>修為 −5，保住性命</span></button>
+      </div></div>`;
+    $("#fight").onclick=()=>chooseFeud(true);$("#flee").onclick=()=>chooseFeud(false);
+    return;
+  }
+  if(view==="choose"){
+    const [ps,ph,pd]=CFG.risk[G.origin];
+    app.innerHTML=`${statusSheet()}${logSheet()}
+    <div class="sheet"><h2>第 ${G.t} 回合：如何修行？</h2>
+      <div class="choices">
+        <button class="choice safe" id="safe"><b>閉關悟道</b><span>+4，20% 頓悟 +8<br>不會受傷</span></button>
+        <button class="choice risk" id="risk"><b>出山歷練</b><span>${Math.round(ps*100)}% 機緣 +15<br>${Math.round(ph*100)}% 重傷・${Math.round(pd*100)}% 隕落</span></button>
+      </div></div>`;
+    $("#safe").onclick=()=>choose(false);$("#risk").onclick=()=>choose(true);
+    return;
+  }
+  if(view==="result"){
+    app.innerHTML=`${statusSheet()}
+    <div class="sheet"><h2>第 ${G.t} 回合結果</h2>${logSheet()}
+      <button class="primary" id="next">進入第 ${G.t+1} 回合</button></div>`;
+    $("#next").onclick=startRound;
+    return;
+  }
+  if(view==="end"){
+    const g=G;const title=g.end_reason==="隕落"?"身死道消":g.final_x>=100?"飛升元嬰，登頂修仙界":g.cleared?"結成金丹，通關！":"修行未竟";
+    const flip=g.origin==="乞丐"&&g.cleared;
+    app.innerHTML=`
+    <div class="sheet" style="align-items:flex-start">
+      <p class="muted small">結束原因：${g.end_reason}</p>
+      <h2>${title}</h2>
+      <div class="row" style="align-items:baseline;gap:14px"><span class="big xwrap"><span id="xnum">${shownX}</span></span><span>修為・<span id="xrealm">${realm(shownX)}</span></span></div>
+      ${gauge(shownX)}
+      <div class="titlecard"><small class="muted">本局稱號</small><b>${titleOf(g)[0]}</b><span class="small">${titleOf(g)[1]}</span></div>
+      ${flip?`<p style="color:var(--gold);font-weight:700">乞丐翻身成功！</p>`:""}
+      <p class="small muted">出身 ${g.origin}・路線 ${g.choices.replace(/S/g,"悟").replace(/R/g,"歷").replace(/H/g,"療")}</p>
+    </div>
+    <div class="sheet" id="survey">
+      <h2>三個小問題</h2>
+      <div><label>這局的難度？</label><div class="pillrow" data-q="difficulty">${["太簡單","剛好","太難"].map(v=>`<button class="pill" aria-pressed="false" data-v="${v}">${v}</button>`).join("")}</div></div>
+      <div><label>好玩程度（1 最低、5 最高）</label><div class="pillrow" data-q="fun">${[1,2,3,4,5].map(v=>`<button class="pill" aria-pressed="false" data-v="${v}">${v}</button>`).join("")}</div></div>
+      <div><label>願意再玩一次嗎？</label><div class="pillrow" data-q="replay">${["願意","不願意"].map(v=>`<button class="pill" aria-pressed="false" data-v="${v}">${v}</button>`).join("")}</div></div>
+      <button class="primary" id="submit" disabled>送出並再玩一局</button>
+      <button id="skip" class="small">跳過問卷</button>
+    </div>`;
+    const ans={};
+    document.querySelectorAll(".pillrow").forEach(row=>row.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+      row.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));ans[row.dataset.q]=b.dataset.v;
+      $("#submit").disabled=!(ans.difficulty&&ans.fun&&ans.replay)}));
+    $("#submit").onclick=()=>{G.survey=ans;saveGame(G);G=null;view="start";render()};
+    $("#skip").onclick=()=>{G=null;view="start";render()};
+    return;
+  }
+  if(view==="data") return renderData();
+}
+
+// ===== 資料與匯出 =====
+const GAME_COLS=["game_id","player_id","game_no","version","source","start_time","origin","x0","s0","final_x","final_realm","died","cleared","end_reason","interrupted","rounds_played","total_s","mean_decision_s","n_safe","n_risk","n_heal","choices","luck_count","hurt_count","stone_used","feud_choice","difficulty","fun","replay"];
+const ROUND_COLS=["game_id","player_id","game_no","origin","round","x_before","realm_before","hurt_before","stones_before","luck","feud","feud_result","feud_decision_s","action","decision_s","result","x_after","realm_after","t_elapsed_s"];
+function csvCell(v){if(v==null)return "";v=String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+function gameRows(gs){return gs.map(g=>GAME_COLS.map(c=>{const s=g.survey||{};if(c in s)return s[c];if(c==="interrupted")return g.interrupted||0;return g[c]}))}
+function roundRows(gs){const out=[];gs.forEach(g=>(g.rounds||[]).forEach(r=>out.push(ROUND_COLS.map(c=>c in r?r[c]:g[c]))));return out}
+function toCSV(cols,rows){return "﻿"+[cols,...rows].map(r=>r.map(csvCell).join(",")).join("\r\n")}
+async function exportCSV(name,text){
+  const msg=$("#exmsg");
+  try{
+    if(window.claude&&window.claude.use){const dl=await window.claude.use("downloads");
+      if(dl){await dl.save({filename:name,data:text});msg.textContent="已匯出 "+name;return}}
+    const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type:"text/csv"}));a.download=name;document.body.appendChild(a);a.click();a.remove();
+    msg.textContent="已匯出 "+name+"（若沒有下載，請用下方「複製」）";
+  }catch(e){msg.textContent=e&&e.code==="declined"?"已取消匯出":"這裡無法下載，請用下方「複製」"}
+  $("#csvbox").value=text;
+}
+function renderData(){
+  const gs=allGames();const test=lsGet(LS_TEST,false);
+  const real=gs.filter(g=>g.source!=="測試");
+  const players=new Set(real.map(g=>g.player_id)).size;
+  app.innerHTML=`
+  <div class="head"><span class="seal">簿</span><div><h2>資料與匯出</h2><p class="muted small">版本 ${CFG.version}・${DB?"已連線雲端（擁有者裝置會集中）":"僅存本機瀏覽器"}</p></div></div>
+  <div class="sheet">
+    <div class="stats"><div class="stat"><small>總局數</small><b>${gs.length}</b></div><div class="stat"><small>真人局</small><b>${real.length}</b></div><div class="stat"><small>玩家數</small><b>${players}</b></div><div class="stat"><small>測試局</small><b>${gs.length-real.length}</b></div></div>
+    <div class="row"><button id="eg">匯出局紀錄 CSV</button><button id="er">匯出回合紀錄 CSV</button></div>
+    <p id="exmsg" class="small muted" aria-live="polite"></p>
+    <details><summary>手動複製（下載無效時）</summary><textarea id="csvbox" readonly></textarea><button id="cp" class="small">複製</button></details>
+  </div>
+  <div class="sheet">
+    <label class="row" style="align-items:center"><input type="checkbox" id="test" ${test?"checked":""}> 接下來的局標記為「測試」（不列入分析）</label>
+  </div>
+  <div class="sheet"><h2>最近紀錄</h2><div class="scroll"><table>
+    <tr><th>玩家</th><th>局</th><th>出身</th><th>修為</th><th>結束</th><th>路線</th><th>秒</th><th>來源</th></tr>
+    ${gs.slice(-15).reverse().map(g=>`<tr><td>${esc(g.player_id)}</td><td>${g.game_no}</td><td>${g.origin}</td><td>${g.final_x}</td><td>${g.end_reason}</td><td>${g.choices}</td><td>${(+g.total_s).toFixed(0)}</td><td>${g.source}</td></tr>`).join("")||`<tr><td colspan="8" class="muted">還沒有紀錄，玩一局就會出現在這裡。</td></tr>`}
+  </table></div></div>
+  <button id="back">回到開始畫面</button>`;
+  const stamp=new Date().toISOString().slice(0,10);
+  $("#eg").onclick=()=>exportCSV(`獨自修仙_局紀錄_${stamp}.csv`,toCSV(GAME_COLS,gameRows(gs)));
+  $("#er").onclick=()=>exportCSV(`獨自修仙_回合紀錄_${stamp}.csv`,toCSV(ROUND_COLS,roundRows(gs)));
+  $("#cp").onclick=()=>{const t=$("#csvbox");navigator.clipboard?.writeText(t.value).catch(()=>{t.select()});t.select()};
+  $("#test").onchange=e=>lsSet(LS_TEST,e.target.checked);
+  $("#back").onclick=()=>{view="start";render()};
+}
+render();
+</script>
+</body></html>
