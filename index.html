@@ -90,15 +90,19 @@ details summary{cursor:pointer;color:var(--muted)}
 <script>
 // ===== 規則參數（Stage1 v1） =====
 const CFG = {
-  version: "v1.0-世家2%",
+  version: "v1.2-世家15%",
   N: 8, LIMIT_S: 300,
-  origin: [["乞丐",0.60],["身負血仇",0.38],["世家",0.02]],
+  origin: [["乞丐",0.52],["身負血仇",0.33],["世家",0.15]],
   init: {"乞丐":{x:0,s:0},"身負血仇":{x:10,s:0},"世家":{x:20,s:2}},
   risk: {"乞丐":[0.55,0.40,0.05],"身負血仇":[0.60,0.32,0.08],"世家":[0.50,0.45,0.05]},
   safe: {p:0.2, hi:8, lo:4}, riskGain:15, hurtLoss:5,
   luck: {p:0.2, gain:8},
   feud: {round:4, win:0.5, hurt:0.4, gain:15, flee:5}
 };
+// 自動上傳：Google Apps Script 網頁應用程式的網址（/exec 結尾），留空就不上傳
+const UPLOAD_URL = "https://script.google.com/macros/s/AKfycbyevpdEkP2Gegg-PUAFFDwKTFNihxjl0H8KG64ZCzDtDD8i-mguwJYyQVbQsAf_syJRww/exec";
+// 或用 Google 表單收資料：formResponse 網址與欄位代號（entry.數字）
+const FORM_URL = "", FORM_ENTRY = "";
 const realm = x => x>=100?"元嬰":x>=60?"金丹":x>=30?"築基":"練氣";
 const LS_GAMES="dzxx_games_v1", LS_LIVE="dzxx_live_v1", LS_PID="dzxx_pid", LS_TEST="dzxx_test";
 const lsGet=(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}};
@@ -230,7 +234,7 @@ function endGame(reason){
   G.ended=true;G.end_reason=reason;finalizeStats(G);
   clearInterval(tick);tick=null;
   try{localStorage.removeItem(LS_LIVE)}catch(e){}
-  saveGame(G);view="end";render();
+  saveGame(G);uploadGame(G);view="end";render();
 }
 function finalizeStats(g){
   g.end_ms=now();g.total_s=r3((g.end_ms-g.start_ms)/1000);
@@ -321,7 +325,7 @@ function renderView(){
     app.innerHTML=`
     <div class="head"><span class="seal">修<br>仙</span><div><h1>獨自修仙</h1><p class="muted">天道抽出身，八回合定境界</p></div></div>
     <div class="sheet">
-      <p>開局由天道隨機決定你的出身：<b>乞丐 60%</b>、<b>身負血仇 38%</b>、<b>世家 2%</b>。</p>
+      <p>開局由天道隨機決定你的出身：<b>乞丐 52%</b>、<b>身負血仇 33%</b>、<b>世家 15%</b>。</p>
       <p>每回合二選一：<b style="color:var(--jade)">閉關悟道</b>穩定成長，<b style="color:var(--seal)">出山歷練</b>成長快，但可能重傷或隕落。</p>
       <p>存活並讓修為達到 <b>60（金丹）</b>即為通關，達到 <b>100（元嬰）</b>即登頂。</p>
       ${gauge(0)}
@@ -405,7 +409,7 @@ function renderView(){
     document.querySelectorAll(".pillrow").forEach(row=>row.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
       row.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));ans[row.dataset.q]=b.dataset.v;
       $("#submit").disabled=!(ans.difficulty&&ans.fun&&ans.replay)}));
-    $("#submit").onclick=()=>{G.survey=ans;saveGame(G);G=null;view="start";render()};
+    $("#submit").onclick=()=>{G.survey=ans;saveGame(G);uploadGame(G,true);G=null;view="start";render()};
     $("#skip").onclick=()=>{G=null;view="start";render()};
     return;
   }
@@ -437,6 +441,7 @@ function renderData(){
   <div class="head"><span class="seal">簿</span><div><h2>資料與匯出</h2><p class="muted small">版本 ${CFG.version}・${DB?"已連線雲端（擁有者裝置會集中）":"僅存本機瀏覽器"}</p></div></div>
   <div class="sheet">
     <div class="stats"><div class="stat"><small>總局數</small><b>${gs.length}</b></div><div class="stat"><small>真人局</small><b>${real.length}</b></div><div class="stat"><small>玩家數</small><b>${players}</b></div><div class="stat"><small>測試局</small><b>${gs.length-real.length}</b></div></div>
+    ${(UPLOAD_URL||FORM_URL)?`<p class="small muted">已自動上傳 ${lsGet(LS_GAMES,[]).filter(g=>g.uploaded).length} / ${lsGet(LS_GAMES,[]).length} 局（本裝置）</p>`:""}
     <div class="row"><button id="eg">匯出局紀錄 CSV</button><button id="er">匯出回合紀錄 CSV</button></div>
     <p id="exmsg" class="small muted" aria-live="polite"></p>
     <details><summary>手動複製（下載無效時）</summary><textarea id="csvbox" readonly></textarea><button id="cp" class="small">複製</button></details>
@@ -456,6 +461,21 @@ function renderData(){
   $("#test").onchange=e=>lsSet(LS_TEST,e.target.checked);
   $("#back").onclick=()=>{view="start";render()};
 }
+// ===== 自動上傳到 Google 試算表 =====
+async function uploadGame(g,force){
+  if(!(UPLOAD_URL||FORM_URL)||(!force&&g.uploaded))return false;
+  try{
+    const payload=JSON.stringify({gameCols:GAME_COLS,gameRows:gameRows([g]),roundCols:ROUND_COLS,roundRows:roundRows([g])});
+    if(FORM_URL)await fetch(FORM_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({[FORM_ENTRY]:payload}).toString()});
+    else await fetch(UPLOAD_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:payload});
+    g.uploaded=true;
+    const all=lsGet(LS_GAMES,[]);const i=all.findIndex(x=>x.game_id===g.game_id);if(i>=0){all[i].uploaded=true;lsSet(LS_GAMES,all)}
+    return true;
+  }catch(e){return false}
+}
+function uploadPending(){for(const g of lsGet(LS_GAMES,[]))if(!g.uploaded)uploadGame(g)}
 render();
+uploadPending();
+window.addEventListener("online",uploadPending);
 </script>
 </body></html>
