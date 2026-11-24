@@ -438,10 +438,10 @@ function renderData(){
   const real=gs.filter(g=>g.source!=="測試");
   const players=new Set(real.map(g=>g.player_id)).size;
   app.innerHTML=`
-  <div class="head"><span class="seal">簿</span><div><h2>資料與匯出</h2><p class="muted small">版本 ${CFG.version}・${DB?"已連線雲端（擁有者裝置會集中）":"僅存本機瀏覽器"}</p></div></div>
+  <div class="head"><span class="seal">簿</span><div><h2>資料與匯出</h2><p class="muted small">版本 ${CFG.version}・${DB?"已連線雲端（擁有者裝置會集中）":(UPLOAD_URL||FORM_URL)?"存在本機，並送到組員的試算表":"僅存本機瀏覽器"}</p></div></div>
   <div class="sheet">
     <div class="stats"><div class="stat"><small>總局數</small><b>${gs.length}</b></div><div class="stat"><small>真人局</small><b>${real.length}</b></div><div class="stat"><small>玩家數</small><b>${players}</b></div><div class="stat"><small>測試局</small><b>${gs.length-real.length}</b></div></div>
-    ${(UPLOAD_URL||FORM_URL)?`<p class="small muted">已自動上傳 ${lsGet(LS_GAMES,[]).filter(g=>g.uploaded).length} / ${lsGet(LS_GAMES,[]).length} 局（本裝置）</p>`:""}
+    ${(UPLOAD_URL||FORM_URL)?`<p class="small muted">本裝置已送出 ${lsGet(LS_GAMES,[]).filter(g=>g.uploaded).length} / ${lsGet(LS_GAMES,[]).length} 局</p><div class="row"><button id="resend">重新上傳本裝置全部紀錄</button></div><p id="rsmsg" class="small muted" aria-live="polite">${window.__upErr?"上次上傳失敗，"+esc(window.__upErr):""}</p>`:""}
     <div class="row"><button id="eg">匯出局紀錄 CSV</button><button id="er">匯出回合紀錄 CSV</button></div>
     <p id="exmsg" class="small muted" aria-live="polite"></p>
     <details><summary>手動複製（下載無效時）</summary><textarea id="csvbox" readonly></textarea><button id="cp" class="small">複製</button></details>
@@ -459,6 +459,9 @@ function renderData(){
   $("#er").onclick=()=>exportCSV(`獨自修仙_回合紀錄_${stamp}.csv`,toCSV(ROUND_COLS,roundRows(gs)));
   $("#cp").onclick=()=>{const t=$("#csvbox");navigator.clipboard?.writeText(t.value).catch(()=>{t.select()});t.select()};
   $("#test").onchange=e=>lsSet(LS_TEST,e.target.checked);
+  const rs=$("#resend");if(rs)rs.onclick=async()=>{rs.disabled=true;const all=lsGet(LS_GAMES,[]).map(x=>(x.uploaded=false,x));lsSet(LS_GAMES,all);let n=0;
+    for(const x of all){$("#rsmsg").textContent=`上傳中 ${++n} / ${all.length}…`;await uploadGame(x,true);await new Promise(r=>setTimeout(r,400))}
+    const ok=lsGet(LS_GAMES,[]).filter(x=>x.uploaded).length;$("#rsmsg").textContent=window.__upErr?`成功 ${ok} / ${all.length} 局。失敗原因：${window.__upErr}`:`全部 ${all.length} 局已寫入試算表。`;rs.disabled=false};
   $("#back").onclick=()=>{view="start";render()};
 }
 // ===== 自動上傳到 Google 試算表 =====
@@ -467,7 +470,13 @@ async function uploadGame(g,force){
   try{
     const payload=JSON.stringify({gameCols:GAME_COLS,gameRows:gameRows([g]),roundCols:ROUND_COLS,roundRows:roundRows([g])});
     if(FORM_URL)await fetch(FORM_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({[FORM_ENTRY]:payload}).toString()});
-    else await fetch(UPLOAD_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:payload});
+    else{
+      let text="";
+      try{const r=await fetch(UPLOAD_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:payload});text=await r.text()}
+      catch(e){window.__upErr="連線失敗："+(e&&e.message||e);return false}
+      if(!/^ok/.test(text)){window.__upErr="試算表回應："+text.slice(0,120);return false}
+      window.__upErr="";
+    }
     g.uploaded=true;
     const all=lsGet(LS_GAMES,[]);const i=all.findIndex(x=>x.game_id===g.game_id);if(i>=0){all[i].uploaded=true;lsSet(LS_GAMES,all)}
     return true;
